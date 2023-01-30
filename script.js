@@ -32,19 +32,29 @@ const renderError = function (msg) {
   countriesContainer.insertAdjacentText('beforeend', msg);
 };
 
+const getJSON = function (url, errorMsg = 'Something went wrong') {
+  return fetch(url).then(response => {
+    if (!response.ok) throw new Error(`${errorMsg} (${response.status})`);
+
+    return response.json();
+  });
+};
+
 const getCountryData = function (country) {
-  fetch(`https://restcountries.com/v3.1/name/${country}`)
-    .then(response => response.json())
+  // Country 1
+  getJSON(`https://restcountries.com/v3.1/name/${country}`, 'Country not found')
     .then(data => {
       renderCountry(data[0]);
       const neighbor = data[0].borders[0];
 
-      if (!neighbor) return;
+      if (!neighbor) throw new Error('No neighbor found!');
 
       // Country 2
-      return fetch(`https://restcountries.com/v3.1/alpha/${neighbor}`);
+      return getJSON(
+        `https://restcountries.com/v3.1/alpha/${neighbor}`,
+        'Country not found'
+      );
     })
-    .then(response => response.json())
     .then(data => renderCountry(data[0], 'neighbour'))
     .catch(err => {
       console.log(`{err} ❤️‍🔥❤️‍🔥❤️‍🔥`);
